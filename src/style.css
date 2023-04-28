@@ -14,39 +14,60 @@ body {
   background-color: grey;
 }
 
-.container {
-  margin: 0 auto;
-  max-width: 850px;
-  display: flex;
-  flex-wrap: wrap;
-}
-
 button {
   outline: none;
   border: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.container {
+  margin: 0 auto;
+  padding-top: 20vh;
+  max-width: 1440px;
+  width: 100%;
+  height: 100%;
+}
+
+.keyboard {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  padding: 5px;
+  max-width: 860px;
+  border-radius: 5px;
+  background-color: #5d4954;
 }
 
 .keyboard__key {
-  flex-grow: 1;
-  min-width: 45px;
-  height: 45px;
-  margin: 5px;
+  position: relative;
+  width: 50px;
+  height: 50px;
+  margin: 2px;
   padding: 0 5px;
+  border-radius: 3px;
   font-size: 1.1rem;
   font-weight: 500;
   text-align: center;
-  color: darkgreen;
-  opacity: 0.9;
+  color: #ff144b;
   cursor: pointer;
+  background-color: #fff5c5;
+  box-shadow: 0 0 5px;
 }
 
-.keyboard__key:hover {
-  opacity: 1;
+.keyboard__key_active {
+  background-color: #fff5be;
+  transform: scale(0.97);
 }
 
-.keyboard__key.active {
-  color: red;
-  transform: scale(0.95);
+.keyboard__key.Delete,
+.keyboard__key.Tab,
+.keyboard__key.Enter,
+.keyboard__key.CapsLock,
+.keyboard__key.Backspace,
+.keyboard__key.ShiftLeft,
+.keyboard__key.ShiftRight,
+.keyboard__key.Space {
+  flex-grow: 1;
 }
 
 .keyboard__key.Delete,
@@ -59,15 +80,20 @@ button {
   width: 100px;
 }
 
-.keyboard__key.Backspace,
-.keyboard__key.ShiftLeft {
+.keyboard__key.Backspace {
   width: 110px;
 }
 
+.keyboard__key.ShiftLeft,
 .keyboard__key.ShiftRight {
-  width: 88px;
+  width: 120px;
 }
 
 .keyboard__key.Space {
-  width: 45.333%;
+  width: 43.333%;
+}
+
+.keyboard__key.ControlLeft,
+.keyboard__key.ControlRight {
+  width: 70px;
 }
