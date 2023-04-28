@@ -1,0 +1,73 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+html,
+body {
+  min-height: 100vh;
+  height: 100%;
+  font-size: 16px;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  background-color: grey;
+}
+
+.container {
+  margin: 0 auto;
+  max-width: 850px;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+button {
+  outline: none;
+  border: none;
+}
+
+.keyboard__key {
+  flex-grow: 1;
+  min-width: 45px;
+  height: 45px;
+  margin: 5px;
+  padding: 0 5px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-align: center;
+  color: darkgreen;
+  opacity: 0.9;
+  cursor: pointer;
+}
+
+.keyboard__key:hover {
+  opacity: 1;
+}
+
+.keyboard__key.active {
+  color: red;
+  transform: scale(0.95);
+}
+
+.keyboard__key.Delete,
+.keyboard__key.Tab {
+  width: 70px;
+}
+
+.keyboard__key.Enter,
+.keyboard__key.CapsLock {
+  width: 100px;
+}
+
+.keyboard__key.Backspace,
+.keyboard__key.ShiftLeft {
+  width: 110px;
+}
+
+.keyboard__key.ShiftRight {
+  width: 88px;
+}
+
+.keyboard__key.Space {
+  width: 45.333%;
+}
