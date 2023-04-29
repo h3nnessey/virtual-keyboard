@@ -8,11 +8,11 @@ class Keyboard {
       keyboard: null,
       keys: [],
     };
+    this.lang = 'en';
     this.value = '';
     this.capsLock = {
       enabled: false,
       keyUppedCount: 0,
-      keyDownedCount: 0,
     };
     this.eventTypes = ['keydown', 'keyup'];
   }
@@ -49,14 +49,13 @@ class Keyboard {
 
   handleKey(e) {
     e.preventDefault();
-    const { code, type } = e;
-    const button = this.elements.keys.find((key) => key.classList.contains(code));
-    if (!button) return;
+    const key = this.elements.keys.find((el) => el.classList.contains(e.code));
 
-    if (type === 'keydown') {
-      // todo: need current cursor position in textarea
-      button.classList.add('keyboard__key_active');
-      switch (code) {
+    if (!key) return;
+
+    if (e.type === 'keydown') {
+      key.classList.add('keyboard__key_active');
+      switch (e.code) {
         case 'Space': {
           this.value += ' ';
           break;
@@ -77,19 +76,49 @@ class Keyboard {
           break;
         }
         case 'CapsLock': {
-          this.toggleCapsLock(type, button);
+          this.toggleCapsLock(e.type, e.repeat);
+          break;
+        }
+        case 'MetaLeft': {
+          break;
+        }
+        case 'ShiftLeft':
+        case 'ShiftRight': {
+          break;
+        }
+        case 'AltLeft':
+        case 'AltRight': {
+          if (e.ctrlKey && !e.repeat) {
+            if (this.lang === 'en') {
+              this.lang = 'ru';
+            } else {
+              this.lang = 'en';
+            }
+          }
+          break;
+        }
+        case 'ControlLeft':
+        case 'ControlRight': {
+          if (e.altKey && !e.repeat) {
+            if (this.lang === 'en') {
+              this.lang = 'ru';
+            } else {
+              this.lang = 'en';
+            }
+            console.log(this.lang);
+          }
           break;
         }
         default: {
-          this.value += button.lastChild.textContent;
+          this.value += key.lastChild.textContent;
         }
       }
       this.elements.textArea.value = this.value;
     }
 
-    if (type === 'keyup') {
-      button.classList.remove('keyboard__key_active');
-      if (code === 'CapsLock') {
+    if (e.type === 'keyup') {
+      key.classList.remove('keyboard__key_active');
+      if (e.code === 'CapsLock') {
         this.toggleCapsLock(e.type);
       }
     }
@@ -121,24 +150,20 @@ class Keyboard {
     });
   }
 
-  toggleCapsLock(eventName) {
+  toggleCapsLock(eventType, isRepeat) {
     const capsLockBtn = this.elements.keys.find((key) => key.classList.contains('CapsLock'));
 
-    if (eventName === 'keydown') {
+    if (eventType === 'keydown' && !isRepeat) {
       this.capsLock.enabled = true;
-      this.capsLock.keyDownedCount += 1;
-      if (this.capsLock.keyDownedCount === 1) {
-        capsLockBtn.classList.add('keyboard__key_enabled');
-        this.changeKeysCase();
-      }
+      capsLockBtn.classList.add('keyboard__key_enabled');
+      this.changeKeysCase();
     }
 
-    if (eventName === 'keyup') {
+    if (eventType === 'keyup') {
       if (this.capsLock.keyUppedCount > 0) {
         capsLockBtn.classList.remove('keyboard__key_enabled');
         this.capsLock.enabled = false;
         this.capsLock.keyUppedCount = 0;
-        this.capsLock.keyDownedCount = 0;
         this.changeKeysCase();
       } else {
         this.capsLock.keyUppedCount += 1;
