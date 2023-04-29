@@ -15,6 +15,7 @@ class Keyboard {
         enabled: false,
         keyUppedCount: 0,
       },
+      shiftPressed: false,
     };
   }
 
@@ -86,6 +87,7 @@ class Keyboard {
         }
         case 'ShiftLeft':
         case 'ShiftRight': {
+          this.toggleShift(e.type, e.repeat);
           break;
         }
         case 'AltLeft':
@@ -124,6 +126,9 @@ class Keyboard {
       if (e.code === 'CapsLock') {
         this.toggleCapsLock(e.type);
       }
+      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+        this.toggleShift(e.type, e.repeat);
+      }
     }
   }
 
@@ -143,6 +148,7 @@ class Keyboard {
     Object.entries(keys.layout).forEach(([keyName, value]) => {
       const key = this.elements.keys.find((el) => el.classList.contains(keyName));
       const keyValue = value[this.props.lang].value;
+
       if (!key || this.isServiceKey(key)) return;
 
       key.lastChild.textContent = this.props.capsLock.enabled
@@ -152,19 +158,29 @@ class Keyboard {
   }
 
   changeKeyboardCase() {
+    const isShouldBeLowerCase = () => {
+      const isCapsLockEnabled = this.props.capsLock.enabled;
+      const isShiftPressed = this.props.shiftPressed;
+      return (isCapsLockEnabled && isShiftPressed) || (!isCapsLockEnabled && !isShiftPressed);
+    };
+
     Object.entries(keys.layout).forEach((entry) => {
       const [keyName] = entry;
       const key = this.elements.keys.find((el) => el.classList.contains(keyName));
+      const isLowerCase = isShouldBeLowerCase();
+
       if (!key || this.isServiceKey(key)) return;
 
-      key.lastChild.textContent = this.props.capsLock.enabled
-        ? key.lastChild.textContent.toUpperCase()
-        : key.lastChild.textContent.toLowerCase();
+      if (isLowerCase) {
+        key.lastChild.textContent = key.lastChild.textContent.toLowerCase();
+      } else {
+        key.lastChild.textContent = key.lastChild.textContent.toUpperCase();
+      }
     });
   }
 
   toggleCapsLock(eventType, isRepeat) {
-    const capsLockBtn = this.elements.keys.find((key) => key.classList.contains('CapsLock'));
+    const capsLockBtn = this.elements.keys.find((el) => el.classList.contains('CapsLock'));
 
     if (eventType === 'keydown' && !isRepeat) {
       this.props.capsLock.enabled = true;
@@ -181,6 +197,34 @@ class Keyboard {
       } else {
         this.props.capsLock.keyUppedCount += 1;
       }
+    }
+  }
+
+  toggleShift(eventType, isRepeat) {
+    if (eventType === 'keydown' && !isRepeat) {
+      this.props.shiftPressed = true;
+      Object.entries(keys.layout).forEach(([keyName, value]) => {
+        const key = this.elements.keys.find((el) => el.classList.contains(keyName));
+        const shiftValue = value[this.props.lang].shift;
+
+        if (!key || this.isServiceKey(key) || !shiftValue) return;
+
+        key.lastChild.textContent = shiftValue;
+        this.changeKeyboardCase();
+      });
+    }
+
+    if (eventType === 'keyup') {
+      this.props.shiftPressed = false;
+      Object.entries(keys.layout).forEach(([keyName, value]) => {
+        const key = this.elements.keys.find((el) => el.classList.contains(keyName));
+        const keyValue = value[this.props.lang].value;
+
+        if (!key || this.isServiceKey(key)) return;
+
+        key.lastChild.textContent = keyValue;
+        this.changeKeyboardCase();
+      });
     }
   }
 }
