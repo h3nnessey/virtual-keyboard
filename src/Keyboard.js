@@ -8,13 +8,14 @@ class Keyboard {
       keyboard: null,
       keys: [],
     };
-    this.lang = 'en';
-    this.value = '';
-    this.capsLock = {
-      enabled: false,
-      keyUppedCount: 0,
+    this.props = {
+      lang: localStorage.getItem('lang') || 'en',
+      value: '',
+      capsLock: {
+        enabled: false,
+        keyUppedCount: 0,
+      },
     };
-    this.eventTypes = ['keydown', 'keyup'];
   }
 
   init() {
@@ -31,7 +32,7 @@ class Keyboard {
     this.elements.container.append(this.elements.textArea, this.elements.keyboard);
     document.body.appendChild(this.elements.container);
 
-    this.eventTypes.forEach((eventType) => {
+    ['keydown', 'keyup'].forEach((eventType) => {
       window.addEventListener(eventType, (e) => this.handleKey(e, eventType));
     });
   }
@@ -40,7 +41,7 @@ class Keyboard {
     Object.entries(keysObject).forEach(([key, value]) => {
       const button = document.createElement('button');
       const span = document.createElement('span');
-      const keyValue = value[this.lang].value;
+      const keyValue = value[this.props.lang].value;
       button.classList.add('keyboard__key', key);
       span.textContent = keyValue;
       button.appendChild(span);
@@ -58,22 +59,22 @@ class Keyboard {
       key.classList.add('keyboard__key_active');
       switch (e.code) {
         case 'Space': {
-          this.value += ' ';
+          this.props.value += ' ';
           break;
         }
         case 'Enter': {
-          this.value += '\n';
+          this.props.value += '\n';
           break;
         }
         case 'Backspace': {
-          this.value = this.value.slice(0, -1);
+          this.props.value = this.props.value.slice(0, -1);
           break;
         }
         case 'Delete': {
           break;
         }
         case 'Tab': {
-          this.value += ' '.repeat(4);
+          this.props.value += ' '.repeat(4);
           break;
         }
         case 'CapsLock': {
@@ -90,10 +91,10 @@ class Keyboard {
         case 'AltLeft':
         case 'AltRight': {
           if (e.ctrlKey && !e.repeat) {
-            if (this.lang === 'en') {
-              this.lang = 'ru';
+            if (this.props.lang === 'en') {
+              this.props.lang = 'ru';
             } else {
-              this.lang = 'en';
+              this.props.lang = 'en';
             }
             this.changeKeysLanguage(keys.layout);
           }
@@ -102,20 +103,20 @@ class Keyboard {
         case 'ControlLeft':
         case 'ControlRight': {
           if (e.altKey && !e.repeat) {
-            if (this.lang === 'en') {
-              this.lang = 'ru';
+            if (this.props.lang === 'en') {
+              this.props.lang = 'ru';
             } else {
-              this.lang = 'en';
+              this.props.lang = 'en';
             }
             this.changeKeysLanguage(keys.layout);
           }
           break;
         }
         default: {
-          this.value += key.lastChild.textContent;
+          this.props.value += key.lastChild.textContent;
         }
       }
-      this.elements.textArea.value = this.value;
+      this.elements.textArea.value = this.props.value;
     }
 
     if (e.type === 'keyup') {
@@ -137,29 +138,28 @@ class Keyboard {
   }
 
   changeKeysLanguage() {
+    localStorage.setItem('lang', this.props.lang);
+
     Object.entries(keys.layout).forEach(([keyName, value]) => {
       const key = this.elements.keys.find((el) => el.classList.contains(keyName));
-      const keyValue = value[this.lang].value;
+      const keyValue = value[this.props.lang].value;
       if (!key || this.isServiceKey(key)) return;
-      key.lastChild.textContent = this.capsLock.enabled
+
+      key.lastChild.textContent = this.props.capsLock.enabled
         ? keyValue.toUpperCase()
         : keyValue.toLowerCase();
     });
   }
 
   changeKeyboardCase() {
-    this.elements.keys.forEach((key) => {
-      if (this.isServiceKey(key)) return;
-      const { textContent } = key.lastChild;
-      const span = document.createElement('span');
+    Object.entries(keys.layout).forEach((entry) => {
+      const [keyName] = entry;
+      const key = this.elements.keys.find((el) => el.classList.contains(keyName));
+      if (!key || this.isServiceKey(key)) return;
 
-      if (this.capsLock.enabled) {
-        span.textContent = textContent.toUpperCase();
-      } else {
-        span.textContent = textContent.toLowerCase();
-      }
-
-      key.lastChild.replaceWith(span);
+      key.lastChild.textContent = this.props.capsLock.enabled
+        ? key.lastChild.textContent.toUpperCase()
+        : key.lastChild.textContent.toLowerCase();
     });
   }
 
@@ -167,19 +167,19 @@ class Keyboard {
     const capsLockBtn = this.elements.keys.find((key) => key.classList.contains('CapsLock'));
 
     if (eventType === 'keydown' && !isRepeat) {
-      this.capsLock.enabled = true;
+      this.props.capsLock.enabled = true;
       capsLockBtn.classList.add('keyboard__key_enabled');
       this.changeKeyboardCase();
     }
 
     if (eventType === 'keyup') {
-      if (this.capsLock.keyUppedCount > 0) {
+      if (this.props.capsLock.keyUppedCount > 0) {
         capsLockBtn.classList.remove('keyboard__key_enabled');
-        this.capsLock.enabled = false;
-        this.capsLock.keyUppedCount = 0;
+        this.props.capsLock.enabled = false;
+        this.props.capsLock.keyUppedCount = 0;
         this.changeKeyboardCase();
       } else {
-        this.capsLock.keyUppedCount += 1;
+        this.props.capsLock.keyUppedCount += 1;
       }
     }
   }
