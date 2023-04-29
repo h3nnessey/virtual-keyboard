@@ -21,7 +21,7 @@ class Keyboard {
     this.elements.container = document.createElement('div');
     this.elements.textArea = document.createElement('textarea');
     this.elements.keyboard = document.createElement('div');
-    this.createKeyboardKeys(keys.layout);
+    this.initKeyboardKeys(keys.layout);
 
     this.elements.container.classList.add('container');
     this.elements.textArea.classList.add('keyboard-value');
@@ -36,12 +36,13 @@ class Keyboard {
     });
   }
 
-  createKeyboardKeys(keysObject) {
+  initKeyboardKeys(keysObject) {
     Object.entries(keysObject).forEach(([key, value]) => {
       const button = document.createElement('button');
       const span = document.createElement('span');
+      const keyValue = value[this.lang].value;
       button.classList.add('keyboard__key', key);
-      span.textContent = value;
+      span.textContent = keyValue;
       button.appendChild(span);
       this.elements.keys.push(button);
     });
@@ -94,6 +95,7 @@ class Keyboard {
             } else {
               this.lang = 'en';
             }
+            this.changeKeysLanguage(keys.layout);
           }
           break;
         }
@@ -105,7 +107,7 @@ class Keyboard {
             } else {
               this.lang = 'en';
             }
-            console.log(this.lang);
+            this.changeKeysLanguage(keys.layout);
           }
           break;
         }
@@ -124,19 +126,30 @@ class Keyboard {
     }
   }
 
-  changeKeysCase() {
-    function isServiceKey(key) {
-      let isService = false;
-      keys.serviceKeys.forEach((serviceKey) => {
-        if (key.classList.contains(serviceKey)) {
-          isService = true;
-        }
-      });
-      return isService;
-    }
+  isServiceKey(key) {
+    let isService = false;
+    keys.serviceKeys.forEach((serviceKey) => {
+      if (key.classList.contains(serviceKey)) {
+        isService = true;
+      }
+    });
+    return isService;
+  }
 
+  changeKeysLanguage() {
+    Object.entries(keys.layout).forEach(([keyName, value]) => {
+      const key = this.elements.keys.find((el) => el.classList.contains(keyName));
+      const keyValue = value[this.lang].value;
+      if (!key || this.isServiceKey(key)) return;
+      key.lastChild.textContent = this.capsLock.enabled
+        ? keyValue.toUpperCase()
+        : keyValue.toLowerCase();
+    });
+  }
+
+  changeKeyboardCase() {
     this.elements.keys.forEach((key) => {
-      if (isServiceKey(key)) return;
+      if (this.isServiceKey(key)) return;
       const { textContent } = key.lastChild;
       const span = document.createElement('span');
 
@@ -156,7 +169,7 @@ class Keyboard {
     if (eventType === 'keydown' && !isRepeat) {
       this.capsLock.enabled = true;
       capsLockBtn.classList.add('keyboard__key_enabled');
-      this.changeKeysCase();
+      this.changeKeyboardCase();
     }
 
     if (eventType === 'keyup') {
@@ -164,7 +177,7 @@ class Keyboard {
         capsLockBtn.classList.remove('keyboard__key_enabled');
         this.capsLock.enabled = false;
         this.capsLock.keyUppedCount = 0;
-        this.changeKeysCase();
+        this.changeKeyboardCase();
       } else {
         this.capsLock.keyUppedCount += 1;
       }
