@@ -21,7 +21,7 @@ class Keyboard {
     this.elements.container = document.createElement('div');
     this.elements.textArea = document.createElement('textarea');
     this.elements.keyboard = document.createElement('div');
-    this.elements.keys = this.createKeyboardKeys(keys.layout);
+    this.createKeyboardKeys(keys.layout);
 
     this.elements.container.classList.add('container');
     this.elements.textArea.classList.add('keyboard-value');
@@ -37,28 +37,23 @@ class Keyboard {
   }
 
   createKeyboardKeys(keysObject) {
-    const keysArray = [];
-
     Object.entries(keysObject).forEach(([key, value]) => {
       const button = document.createElement('button');
       const span = document.createElement('span');
       button.classList.add('keyboard__key', key);
       span.textContent = value;
       button.appendChild(span);
-
-      keysArray.push(button);
+      this.elements.keys.push(button);
     });
-
-    return keysArray;
   }
 
-  handleKey(e, eventName) {
+  handleKey(e) {
     e.preventDefault();
-    const { code } = e;
+    const { code, type } = e;
     const button = this.elements.keys.find((key) => key.classList.contains(code));
     if (!button) return;
 
-    if (eventName === 'keydown') {
+    if (type === 'keydown') {
       // todo: need current cursor position in textarea
       button.classList.add('keyboard__key_active');
       switch (code) {
@@ -82,24 +77,7 @@ class Keyboard {
           break;
         }
         case 'CapsLock': {
-          button.classList.add('keyboard__key_enabled');
-          this.capsLock.enabled = true;
-          this.capsLock.keyDownedCount += 1;
-          if (this.capsLock.keyDownedCount === 1) {
-            this.elements.keys.forEach((key) => {
-              let isServiceKey = false;
-              keys.serviceKeys.forEach((serviceKey) => {
-                if (key.classList.contains(serviceKey)) {
-                  isServiceKey = true;
-                }
-              });
-              if (isServiceKey) return;
-              const { textContent } = key.lastChild;
-              const span = document.createElement('span');
-              span.textContent = textContent.toUpperCase();
-              key.lastChild.replaceWith(span);
-            });
-          }
+          this.toggleCapsLock(type, button);
           break;
         }
         default: {
@@ -109,31 +87,61 @@ class Keyboard {
       this.elements.textArea.value = this.value;
     }
 
-    if (eventName === 'keyup') {
+    if (type === 'keyup') {
       button.classList.remove('keyboard__key_active');
       if (code === 'CapsLock') {
-        if (this.capsLock.keyUppedCount > 0) {
-          this.capsLock.enabled = false;
-          this.capsLock.keyUppedCount = 0;
-          this.capsLock.keyDownedCount = 0;
-          button.classList.remove('keyboard__key_enabled');
+        this.toggleCapsLock(e.type);
+      }
+    }
+  }
 
-          this.elements.keys.forEach((key) => {
-            let isServiceKey = false;
-            keys.serviceKeys.forEach((serviceKey) => {
-              if (key.classList.contains(serviceKey)) {
-                isServiceKey = true;
-              }
-            });
-            if (isServiceKey) return;
-            const { textContent } = key.lastChild;
-            const span = document.createElement('span');
-            span.textContent = textContent.toLowerCase();
-            key.lastChild.replaceWith(span);
-          });
-        } else {
-          this.capsLock.keyUppedCount += 1;
+  changeKeysCase() {
+    function isServiceKey(key) {
+      let isService = false;
+      keys.serviceKeys.forEach((serviceKey) => {
+        if (key.classList.contains(serviceKey)) {
+          isService = true;
         }
+      });
+      return isService;
+    }
+
+    this.elements.keys.forEach((key) => {
+      if (isServiceKey(key)) return;
+      const { textContent } = key.lastChild;
+      const span = document.createElement('span');
+
+      if (this.capsLock.enabled) {
+        span.textContent = textContent.toUpperCase();
+      } else {
+        span.textContent = textContent.toLowerCase();
+      }
+
+      key.lastChild.replaceWith(span);
+    });
+  }
+
+  toggleCapsLock(eventName) {
+    const capsLockBtn = this.elements.keys.find((key) => key.classList.contains('CapsLock'));
+
+    if (eventName === 'keydown') {
+      this.capsLock.enabled = true;
+      this.capsLock.keyDownedCount += 1;
+      if (this.capsLock.keyDownedCount === 1) {
+        capsLockBtn.classList.add('keyboard__key_enabled');
+        this.changeKeysCase();
+      }
+    }
+
+    if (eventName === 'keyup') {
+      if (this.capsLock.keyUppedCount > 0) {
+        capsLockBtn.classList.remove('keyboard__key_enabled');
+        this.capsLock.enabled = false;
+        this.capsLock.keyUppedCount = 0;
+        this.capsLock.keyDownedCount = 0;
+        this.changeKeysCase();
+      } else {
+        this.capsLock.keyUppedCount += 1;
       }
     }
   }
