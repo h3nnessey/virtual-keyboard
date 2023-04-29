@@ -66,6 +66,10 @@ class Keyboard {
           this.value += ' ';
           break;
         }
+        case 'Enter': {
+          this.value += '\n';
+          break;
+        }
         case 'Backspace': {
           this.value = this.value.slice(0, -1);
           break;
@@ -100,10 +104,9 @@ class Keyboard {
         }
         default: {
           this.value += button.lastChild.textContent;
-          this.elements.textArea.value = this.value;
         }
       }
-      console.log(this.value);
+      this.elements.textArea.value = this.value;
     }
 
     if (eventName === 'keyup') {
