@@ -8,16 +8,17 @@ class Keyboard {
     this.keyboard.classList.add('keyboard');
     this.keyboard.appendChild(this.createKeyboardKeys(keys));
     this.container.appendChild(this.keyboard);
+
+    this.value = '';
+    this.capsLock = {
+      enabled: false,
+      keyUppedCount: 0,
+    };
+
     document.body.appendChild(this.container);
 
-    window.addEventListener('keydown', (e) => {
-      const button = this.getPressedKey(e);
-      button.classList.add('keyboard__key_active');
-    });
-
-    window.addEventListener('keyup', (e) => {
-      const button = this.getPressedKey(e);
-      button.classList.remove('keyboard__key_active');
+    ['keydown', 'keyup'].forEach((eventType) => {
+      window.addEventListener(eventType, (e) => this.handleKey(e, eventType));
     });
   }
 
@@ -34,10 +35,58 @@ class Keyboard {
     return documentFragment;
   }
 
-  static getPressedKey(e) {
+  static handleKey(e, eventName) {
     e.preventDefault();
     const { code } = e;
-    return document.querySelector(`.${code}`);
+    const button = document.querySelector(`.${code}`);
+    if (!button) return;
+
+    if (eventName === 'keydown') {
+      // todo: need current cursor position in textarea
+      button.classList.add('keyboard__key_active');
+      switch (code) {
+        case 'Space': {
+          this.value += ' ';
+          break;
+        }
+        case 'Backspace': {
+          this.value = this.value.slice(0, -1);
+          break;
+        }
+        case 'Delete': {
+          break;
+        }
+        case 'Tab': {
+          this.value += ' '.repeat(4);
+          break;
+        }
+        case 'CapsLock': {
+          this.capsLock.enabled = true;
+          button.classList.add('keyboard__key_enabled');
+          console.log(this.capsLock.enabled);
+          break;
+        }
+        default: {
+          this.value += button.textContent;
+        }
+      }
+      console.log(this.value);
+    }
+
+    if (eventName === 'keyup') {
+      button.classList.remove('keyboard__key_active');
+      if (code === 'CapsLock') {
+        if (this.capsLock.keyUppedCount > 0) {
+          this.capsLock.enabled = false;
+          this.capsLock.keyUppedCount = 0;
+          button.classList.remove('keyboard__key_enabled');
+          console.log(this.capsLock.enabled);
+        } else {
+          this.capsLock.keyUppedCount += 1;
+          console.log(this.capsLock.enabled);
+        }
+      }
+    }
   }
 }
 

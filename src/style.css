@@ -10,7 +10,8 @@ body {
   min-height: 100vh;
   height: 100%;
   font-size: 16px;
-  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  /*font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;*/
+  font-family: 'Inter', sans-serif;
   background-color: grey;
 }
 
@@ -51,7 +52,8 @@ button {
   color: #ff144b;
   cursor: pointer;
   background-color: #fff5c5;
-  box-shadow: 0 0 5px;
+  box-shadow: rgba(50, 50, 93, 0.25) 0 50px 100px -20px, rgba(0, 0, 0, 0.3) 0 30px 60px -30px,
+    rgba(10, 37, 64, 0.35) 0 -2px 6px 0 inset;
 }
 
 .keyboard__key_active {
@@ -71,7 +73,9 @@ button {
 }
 
 .keyboard__key.Delete,
-.keyboard__key.Tab {
+.keyboard__key.Tab,
+.keyboard__key.ControlLeft,
+.keyboard__key.ControlRight {
   width: 70px;
 }
 
@@ -93,7 +97,19 @@ button {
   width: 43.333%;
 }
 
-.keyboard__key.ControlLeft,
-.keyboard__key.ControlRight {
-  width: 70px;
+/*.keyboard__key.keyboard__key_enabled.CapsLock::after {*/
+/*  content: '';*/
+/*  position: absolute;*/
+/*  display: inline-block;*/
+/*  width: 80%;*/
+/*  height: 2px;*/
+/*  top: 80%;*/
+/*  left: 50%;*/
+/*  transform: translate(-50%, -80%);*/
+/*  border-radius: 1px;*/
+/*  background-color: greenyellow;*/
+/*}*/
+
+.keyboard__key.keyboard__key_enabled.CapsLock {
+  color: #4095ed;
 }
