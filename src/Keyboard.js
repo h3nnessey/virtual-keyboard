@@ -1,7 +1,5 @@
-import keys from './keys.js';
-
 class Keyboard {
-  constructor() {
+  constructor(keysData) {
     this.elements = {
       container: null,
       textArea: null,
@@ -9,6 +7,7 @@ class Keyboard {
       keys: [],
     };
     this.props = {
+      keysData,
       lang: localStorage.getItem('lang') || 'en',
       value: '',
       capsLock: {
@@ -23,7 +22,7 @@ class Keyboard {
     this.elements.container = document.createElement('div');
     this.elements.textArea = document.createElement('textarea');
     this.elements.keyboard = document.createElement('div');
-    this.initKeyboardKeys(keys.layout);
+    this.initKeyboardKeys(this.props.keysData.layout);
 
     this.elements.container.classList.add('container');
     this.elements.textArea.classList.add('keyboard-value');
@@ -75,7 +74,7 @@ class Keyboard {
           break;
         }
         case 'Tab': {
-          this.props.value += ' '.repeat(4);
+          this.props.value += '\t';
           break;
         }
         case 'CapsLock': {
@@ -92,26 +91,12 @@ class Keyboard {
         }
         case 'AltLeft':
         case 'AltRight': {
-          if (e.ctrlKey && !e.repeat) {
-            if (this.props.lang === 'en') {
-              this.props.lang = 'ru';
-            } else {
-              this.props.lang = 'en';
-            }
-            this.changeKeysLanguage(keys.layout);
-          }
+          this.changeKeyboardLanguage(e);
           break;
         }
         case 'ControlLeft':
         case 'ControlRight': {
-          if (e.altKey && !e.repeat) {
-            if (this.props.lang === 'en') {
-              this.props.lang = 'ru';
-            } else {
-              this.props.lang = 'en';
-            }
-            this.changeKeysLanguage(keys.layout);
-          }
+          this.changeKeyboardLanguage(e);
           break;
         }
         default: {
@@ -134,7 +119,7 @@ class Keyboard {
 
   isServiceKey(key) {
     let isService = false;
-    keys.serviceKeys.forEach((serviceKey) => {
+    this.props.keysData.serviceKeys.forEach((serviceKey) => {
       if (key.classList.contains(serviceKey)) {
         isService = true;
       }
@@ -142,32 +127,53 @@ class Keyboard {
     return isService;
   }
 
-  changeKeysLanguage() {
-    localStorage.setItem('lang', this.props.lang);
+  isShouldBeLowerCase() {
+    const isCapsLockEnabled = this.props.capsLock.enabled;
+    const isShiftPressed = this.props.shiftPressed;
+    return (isCapsLockEnabled && isShiftPressed) || (!isCapsLockEnabled && !isShiftPressed);
+  }
 
-    Object.entries(keys.layout).forEach(([keyName, value]) => {
+  setKeyboardLanguage(e) {
+    if (e.altKey && !e.repeat) {
+      if (this.props.lang === 'en') {
+        this.props.lang = 'ru';
+      } else {
+        this.props.lang = 'en';
+      }
+    }
+
+    if (e.ctrlKey && !e.repeat) {
+      if (this.props.lang === 'en') {
+        this.props.lang = 'ru';
+      } else {
+        this.props.lang = 'en';
+      }
+    }
+    localStorage.setItem('lang', this.props.lang);
+  }
+
+  changeKeyboardLanguage(e) {
+    this.setKeyboardLanguage(e);
+
+    Object.entries(this.props.keysData.layout).forEach(([keyName, value]) => {
       const key = this.elements.keys.find((el) => el.classList.contains(keyName));
       const keyValue = value[this.props.lang].value;
-
+      const isLowerCase = this.isShouldBeLowerCase();
       if (!key || this.isServiceKey(key)) return;
 
-      key.lastChild.textContent = this.props.capsLock.enabled
-        ? keyValue.toUpperCase()
-        : keyValue.toLowerCase();
+      if (isLowerCase) {
+        key.lastChild.textContent = keyValue.toLowerCase();
+      } else {
+        key.lastChild.textContent = keyValue.toUpperCase();
+      }
     });
   }
 
   changeKeyboardCase() {
-    const isShouldBeLowerCase = () => {
-      const isCapsLockEnabled = this.props.capsLock.enabled;
-      const isShiftPressed = this.props.shiftPressed;
-      return (isCapsLockEnabled && isShiftPressed) || (!isCapsLockEnabled && !isShiftPressed);
-    };
-
-    Object.entries(keys.layout).forEach((entry) => {
+    Object.entries(this.props.keysData.layout).forEach((entry) => {
       const [keyName] = entry;
       const key = this.elements.keys.find((el) => el.classList.contains(keyName));
-      const isLowerCase = isShouldBeLowerCase();
+      const isLowerCase = this.isShouldBeLowerCase();
 
       if (!key || this.isServiceKey(key)) return;
 
@@ -203,7 +209,7 @@ class Keyboard {
   toggleShift(eventType, isRepeat) {
     if (eventType === 'keydown' && !isRepeat) {
       this.props.shiftPressed = true;
-      Object.entries(keys.layout).forEach(([keyName, value]) => {
+      Object.entries(this.props.keysData.layout).forEach(([keyName, value]) => {
         const key = this.elements.keys.find((el) => el.classList.contains(keyName));
         const shiftValue = value[this.props.lang].shift;
 
@@ -216,7 +222,7 @@ class Keyboard {
 
     if (eventType === 'keyup') {
       this.props.shiftPressed = false;
-      Object.entries(keys.layout).forEach(([keyName, value]) => {
+      Object.entries(this.props.keysData.layout).forEach(([keyName, value]) => {
         const key = this.elements.keys.find((el) => el.classList.contains(keyName));
         const keyValue = value[this.props.lang].value;
 

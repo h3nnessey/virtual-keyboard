@@ -1,4 +1,4 @@
-const keys = {
+const keysData = {
   layout: {
     Backquote: {
       en: {
@@ -658,4 +658,4 @@ const keys = {
   ],
 };
 
-export default keys;
+export default keysData;
