@@ -15,6 +15,10 @@ class Keyboard {
         keyUppedCount: 0,
       },
       shiftPressed: false,
+      selection: {
+        start: 0,
+        end: 0,
+      },
     };
   }
 
@@ -50,74 +54,149 @@ class Keyboard {
   }
 
   handleKey(e) {
-    e.preventDefault();
+    // NEED HUGE REFACTOR
     const key = this.elements.keys.find((el) => el.classList.contains(e.code));
+    this.elements.textArea.focus();
+    const arrowsKeys = ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'];
+    if (arrowsKeys.includes(e.code)) {
+      this.props.selection.start = this.elements.textArea.selectionStart;
+      this.props.selection.end = this.elements.textArea.selectionEnd;
 
-    if (!key) return;
+      if (e.type === 'keydown') {
+        key.classList.add('keyboard__key_active');
+      } else {
+        key.classList.remove('keyboard__key_active');
+      }
+    } else {
+      e.preventDefault();
+      if (!key) return;
+      if (e.type === 'keydown') {
+        switch (e.code) {
+          case 'Space': {
+            this.props.selection.start = this.elements.textArea.selectionStart;
+            this.props.selection.end = this.elements.textArea.selectionEnd;
+            this.props.value =
+              this.props.value.substring(0, this.props.selection.start) +
+              ' ' +
+              this.props.value.substring(this.props.selection.end, this.props.value.length);
+            this.elements.textArea.value = this.props.value;
+            this.elements.textArea.selectionStart = this.props.selection.start + 1;
+            this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+            break;
+          }
+          case 'Enter': {
+            this.props.selection.start = this.elements.textArea.selectionStart;
+            this.props.selection.end = this.elements.textArea.selectionEnd;
+            this.props.value =
+              this.props.value.substring(0, this.props.selection.start) +
+              '\n' +
+              this.props.value.substring(this.props.selection.end, this.props.value.length);
+            this.elements.textArea.value = this.props.value;
+            this.elements.textArea.selectionStart = this.props.selection.start + 1;
+            this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+            break;
+          }
+          case 'Backspace': {
+            this.props.selection.start = this.elements.textArea.selectionStart;
+            this.props.selection.end = this.elements.textArea.selectionEnd;
+            if (this.props.selection.start !== this.props.selection.end) {
+              this.props.value =
+                this.props.value.substring(0, this.props.selection.start) +
+                this.props.value.substring(this.props.selection.end, this.props.value.length);
+              this.elements.textArea.value = this.props.value;
+              this.elements.textArea.selectionStart = this.props.selection.start;
+              this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+            } else {
+              this.props.value =
+                this.props.value.substring(0, this.props.selection.start - 1) +
+                this.props.value.substring(this.props.selection.end, this.props.value.length);
+              this.elements.textArea.value = this.props.value;
+              this.elements.textArea.selectionStart = this.props.selection.start - 1;
+              this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+            }
+            break;
+          }
+          case 'Delete': {
+            this.props.selection.start = this.elements.textArea.selectionStart;
+            this.props.selection.end = this.elements.textArea.selectionEnd;
+            if (this.props.selection.start !== this.props.selection.end) {
+              this.props.value =
+                this.props.value.substring(0, this.props.selection.start) +
+                this.props.value.substring(this.props.selection.end, this.props.value.length);
+              this.elements.textArea.value = this.props.value;
+              this.elements.textArea.selectionStart = this.props.selection.start;
+              this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+            } else {
+              this.props.value =
+                this.props.value.substring(0, this.props.selection.start) +
+                this.props.value.substring(this.props.selection.end + 1, this.props.value.length);
+              this.elements.textArea.value = this.props.value;
+              this.elements.textArea.selectionStart = this.props.selection.start;
+              this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+            }
+            break;
+          }
+          case 'Tab': {
+            this.props.selection.start = this.elements.textArea.selectionStart;
+            this.props.selection.end = this.elements.textArea.selectionEnd;
+            this.props.value =
+              this.props.value.substring(0, this.props.selection.start) +
+              '\t' +
+              this.props.value.substring(this.props.selection.end, this.props.value.length);
+            this.elements.textArea.value = this.props.value;
+            this.elements.textArea.selectionStart = this.props.selection.start + 1;
+            this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+            break;
+          }
+          case 'CapsLock': {
+            this.toggleCapsLock(e.type, e.repeat);
+            break;
+          }
+          case 'MetaLeft': {
+            break;
+          }
+          case 'ShiftLeft':
+          case 'ShiftRight': {
+            if (this.props.shiftPressed) return;
+            this.toggleShift(e.type, e.repeat);
+            break;
+          }
+          case 'AltLeft': {
+            this.changeKeyboardLanguage(e);
+            break;
+          }
+          case 'ControlLeft': {
+            this.changeKeyboardLanguage(e);
+            break;
+          }
+          case 'ControlRight': {
+            break;
+          }
+          case 'AltRight': {
+            break;
+          }
+          default: {
+            this.props.selection.start = this.elements.textArea.selectionStart;
+            this.props.selection.end = this.elements.textArea.selectionEnd;
+            this.props.value =
+              this.props.value.substring(0, this.props.selection.start) +
+              key.lastChild.textContent +
+              this.props.value.substring(this.props.selection.end, this.props.value.length);
+            this.elements.textArea.value = this.props.value;
+            this.elements.textArea.selectionStart = this.props.selection.start + 1;
+            this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+          }
+        }
+      }
 
-    if (e.type === 'keydown') {
-      switch (e.code) {
-        case 'Space': {
-          this.props.value += ' ';
-          break;
+      if (e.type === 'keyup') {
+        key.classList.remove('keyboard__key_active');
+        if (e.code === 'CapsLock') {
+          this.toggleCapsLock(e.type);
         }
-        case 'Enter': {
-          this.props.value += '\n';
-          break;
-        }
-        case 'Backspace': {
-          this.props.value = this.props.value.slice(0, -1);
-          break;
-        }
-        case 'Delete': {
-          break;
-        }
-        case 'Tab': {
-          this.props.value += '\t';
-          break;
-        }
-        case 'CapsLock': {
-          this.toggleCapsLock(e.type, e.repeat);
-          break;
-        }
-        case 'MetaLeft': {
-          break;
-        }
-        case 'ShiftLeft':
-        case 'ShiftRight': {
-          if (this.props.shiftPressed) return;
+        if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
           this.toggleShift(e.type, e.repeat);
-          break;
         }
-        case 'AltLeft': {
-          this.changeKeyboardLanguage(e);
-          break;
-        }
-        case 'ControlLeft': {
-          this.changeKeyboardLanguage(e);
-          break;
-        }
-        case 'ControlRight': {
-          break;
-        }
-        case 'AltRight': {
-          break;
-        }
-        default: {
-          this.props.value += key.lastChild.textContent;
-        }
-      }
-      key.classList.add('keyboard__key_active');
-      this.elements.textArea.value = this.props.value;
-    }
-
-    if (e.type === 'keyup') {
-      key.classList.remove('keyboard__key_active');
-      if (e.code === 'CapsLock') {
-        this.toggleCapsLock(e.type);
-      }
-      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-        this.toggleShift(e.type, e.repeat);
       }
     }
   }
@@ -130,12 +209,6 @@ class Keyboard {
       }
     });
     return isService;
-  }
-
-  isShouldBeUpperCase() {
-    const isCapsLockEnabled = this.props.capsLock.enabled;
-    const isShiftPressed = this.props.shiftPressed;
-    return (isCapsLockEnabled && !isShiftPressed) || (!isCapsLockEnabled && isShiftPressed);
   }
 
   changeKeyboardLanguage(e) {
@@ -159,11 +232,17 @@ class Keyboard {
   }
 
   changeKeysValues() {
+    const isShouldBeUpperCase = () => {
+      const isCapsLockEnabled = this.props.capsLock.enabled;
+      const isShiftPressed = this.props.shiftPressed;
+      return (isCapsLockEnabled && !isShiftPressed) || (!isCapsLockEnabled && isShiftPressed);
+    };
+
     Object.entries(this.props.keysData.layout).forEach(([keyName, value]) => {
       const key = this.elements.keys.find((el) => el.classList.contains(keyName));
       const keyValue = value[this.props.lang].value;
       const shiftValue = value[this.props.lang].shift;
-      const isUpperCase = this.isShouldBeUpperCase();
+      const isUpperCase = isShouldBeUpperCase();
 
       if (!key || this.isServiceKey(key)) return;
 
@@ -180,6 +259,7 @@ class Keyboard {
   }
 
   toggleCapsLock(eventType, isRepeat) {
+    // ?
     const capsLockBtn = this.elements.keys.find((el) => el.classList.contains('CapsLock'));
 
     if (eventType === 'keydown' && !isRepeat) {
@@ -220,3 +300,4 @@ export default Keyboard;
 // todo: add cursor in textarea handler & arrows logic
 // todo: add cross-platform key gen
 // todo: replace switch/case with obj
+// todo: fix git usage of crlf under windows
