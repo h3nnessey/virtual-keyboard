@@ -56,7 +56,6 @@ class Keyboard {
     if (!key) return;
 
     if (e.type === 'keydown') {
-      key.classList.add('keyboard__key_active');
       switch (e.code) {
         case 'Space': {
           this.props.value += ' ';
@@ -86,23 +85,29 @@ class Keyboard {
         }
         case 'ShiftLeft':
         case 'ShiftRight': {
+          if (this.props.shiftPressed) return;
           this.toggleShift(e.type, e.repeat);
           break;
         }
-        case 'AltLeft':
-        case 'AltRight': {
+        case 'AltLeft': {
           this.changeKeyboardLanguage(e);
           break;
         }
-        case 'ControlLeft':
-        case 'ControlRight': {
+        case 'ControlLeft': {
           this.changeKeyboardLanguage(e);
+          break;
+        }
+        case 'ControlRight': {
+          break;
+        }
+        case 'AltRight': {
           break;
         }
         default: {
           this.props.value += key.lastChild.textContent;
         }
       }
+      key.classList.add('keyboard__key_active');
       this.elements.textArea.value = this.props.value;
     }
 
@@ -127,14 +132,14 @@ class Keyboard {
     return isService;
   }
 
-  isShouldBeLowerCase() {
+  isShouldBeUpperCase() {
     const isCapsLockEnabled = this.props.capsLock.enabled;
     const isShiftPressed = this.props.shiftPressed;
-    return (isCapsLockEnabled && isShiftPressed) || (!isCapsLockEnabled && !isShiftPressed);
+    return (isCapsLockEnabled && !isShiftPressed) || (!isCapsLockEnabled && isShiftPressed);
   }
 
-  setKeyboardLanguage(e) {
-    if (e.altKey && !e.repeat) {
+  changeKeyboardLanguage(e) {
+    if (e.code === 'AltLeft' && e.ctrlKey && !e.repeat) {
       if (this.props.lang === 'en') {
         this.props.lang = 'ru';
       } else {
@@ -142,7 +147,7 @@ class Keyboard {
       }
     }
 
-    if (e.ctrlKey && !e.repeat) {
+    if (e.code === 'ControlLeft' && e.altKey && !e.repeat) {
       if (this.props.lang === 'en') {
         this.props.lang = 'ru';
       } else {
@@ -150,37 +155,26 @@ class Keyboard {
       }
     }
     localStorage.setItem('lang', this.props.lang);
+    this.changeKeysValues();
   }
 
-  changeKeyboardLanguage(e) {
-    this.setKeyboardLanguage(e);
-
+  changeKeysValues() {
     Object.entries(this.props.keysData.layout).forEach(([keyName, value]) => {
       const key = this.elements.keys.find((el) => el.classList.contains(keyName));
       const keyValue = value[this.props.lang].value;
-      const isLowerCase = this.isShouldBeLowerCase();
-      if (!key || this.isServiceKey(key)) return;
-
-      if (isLowerCase) {
-        key.lastChild.textContent = keyValue.toLowerCase();
-      } else {
-        key.lastChild.textContent = keyValue.toUpperCase();
-      }
-    });
-  }
-
-  changeKeyboardCase() {
-    Object.entries(this.props.keysData.layout).forEach((entry) => {
-      const [keyName] = entry;
-      const key = this.elements.keys.find((el) => el.classList.contains(keyName));
-      const isLowerCase = this.isShouldBeLowerCase();
+      const shiftValue = value[this.props.lang].shift;
+      const isUpperCase = this.isShouldBeUpperCase();
 
       if (!key || this.isServiceKey(key)) return;
 
-      if (isLowerCase) {
-        key.lastChild.textContent = key.lastChild.textContent.toLowerCase();
+      if (!shiftValue) {
+        key.lastChild.textContent = isUpperCase ? keyValue.toUpperCase() : keyValue.toLowerCase();
+      } else if (this.props.shiftPressed) {
+        key.lastChild.textContent = isUpperCase
+          ? shiftValue.toUpperCase()
+          : shiftValue.toLowerCase();
       } else {
-        key.lastChild.textContent = key.lastChild.textContent.toUpperCase();
+        key.lastChild.textContent = isUpperCase ? keyValue.toUpperCase() : keyValue.toLowerCase();
       }
     });
   }
@@ -191,7 +185,7 @@ class Keyboard {
     if (eventType === 'keydown' && !isRepeat) {
       this.props.capsLock.enabled = true;
       capsLockBtn.classList.add('keyboard__key_enabled');
-      this.changeKeyboardCase();
+      this.changeKeysValues();
     }
 
     if (eventType === 'keyup') {
@@ -199,7 +193,7 @@ class Keyboard {
         capsLockBtn.classList.remove('keyboard__key_enabled');
         this.props.capsLock.enabled = false;
         this.props.capsLock.keyUppedCount = 0;
-        this.changeKeyboardCase();
+        this.changeKeysValues();
       } else {
         this.props.capsLock.keyUppedCount += 1;
       }
@@ -209,30 +203,20 @@ class Keyboard {
   toggleShift(eventType, isRepeat) {
     if (eventType === 'keydown' && !isRepeat) {
       this.props.shiftPressed = true;
-      Object.entries(this.props.keysData.layout).forEach(([keyName, value]) => {
-        const key = this.elements.keys.find((el) => el.classList.contains(keyName));
-        const shiftValue = value[this.props.lang].shift;
-
-        if (!key || this.isServiceKey(key) || !shiftValue) return;
-
-        key.lastChild.textContent = shiftValue;
-        this.changeKeyboardCase();
-      });
     }
 
     if (eventType === 'keyup') {
       this.props.shiftPressed = false;
-      Object.entries(this.props.keysData.layout).forEach(([keyName, value]) => {
-        const key = this.elements.keys.find((el) => el.classList.contains(keyName));
-        const keyValue = value[this.props.lang].value;
-
-        if (!key || this.isServiceKey(key)) return;
-
-        key.lastChild.textContent = keyValue;
-        this.changeKeyboardCase();
-      });
     }
+    this.changeKeysValues();
   }
 }
 
 export default Keyboard;
+
+// todo: resolve alt gr problem (since it emmit key press ctrL+altR at the same time)
+// todo: remove unnecessary vars from constructor (like global container)
+// todo: add clicks handlers
+// todo: add cursor in textarea handler & arrows logic
+// todo: add cross-platform key gen
+// todo: replace switch/case with obj
