@@ -1,14 +1,14 @@
 class Keyboard {
-  constructor(keysData) {
+  constructor(keysData, container) {
     this.elements = {
-      container: null,
+      container,
       textArea: null,
       keyboard: null,
       keys: [],
     };
     this.props = {
       keysData,
-      lang: localStorage.getItem('lang') || 'en',
+      lang: localStorage.getItem('lang-key') || 'en',
       value: '',
       capsLock: {
         enabled: false,
@@ -23,12 +23,10 @@ class Keyboard {
   }
 
   init() {
-    this.elements.container = document.createElement('div');
     this.elements.textArea = document.createElement('textarea');
     this.elements.keyboard = document.createElement('div');
     this.initKeyboardKeys(this.props.keysData.layout);
 
-    this.elements.container.classList.add('container');
     this.elements.textArea.classList.add('keyboard-value');
     this.elements.keyboard.classList.add('keyboard');
 
@@ -279,7 +277,7 @@ class Keyboard {
         this.props.lang = 'en';
       }
     }
-    localStorage.setItem('lang', this.props.lang);
+    localStorage.setItem('lang-key', this.props.lang);
     this.changeKeysValues();
   }
 
