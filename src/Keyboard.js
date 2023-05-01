@@ -53,15 +53,56 @@ class Keyboard {
     });
   }
 
+  saveTextAreaSelection() {
+    this.props.selection.start = this.elements.textArea.selectionStart;
+    this.props.selection.end = this.elements.textArea.selectionEnd;
+  }
+
+  setTextAreaValueAndSelection(selectionStart) {
+    this.elements.textArea.value = this.props.value;
+    this.elements.textArea.selectionStart = selectionStart;
+    this.elements.textArea.selectionEnd = selectionStart;
+  }
+
+  insertKeyValue(keyValue) {
+    this.saveTextAreaSelection();
+    const { start, end } = this.props.selection;
+    const { value } = this.props;
+    const { length } = value;
+
+    this.props.value = `${value.slice(0, start)}${keyValue}${value.slice(end, length)}`;
+    this.setTextAreaValueAndSelection(start + 1);
+  }
+
+  deleteKeyboardValue(keyCode) {
+    this.saveTextAreaSelection();
+    const { start, end } = this.props.selection;
+    const { value } = this.props;
+    const { length } = value;
+    const isEqualSelections = start === end;
+    const selectionOffset = isEqualSelections ? 1 : 0;
+
+    if (keyCode === 'Backspace') {
+      const prevChar = value[start - 1] || null;
+
+      if (isEqualSelections && !prevChar) return;
+
+      this.props.value = `${value.slice(0, start - selectionOffset)}${value.slice(end, length)}`;
+      this.setTextAreaValueAndSelection(start - selectionOffset);
+    }
+
+    if (keyCode === 'Delete') {
+      this.props.value = `${value.slice(0, start)}${value.slice(end + selectionOffset, length)} `;
+      this.setTextAreaValueAndSelection(start);
+    }
+  }
+
   handleKey(e) {
-    // NEED HUGE REFACTOR
     const key = this.elements.keys.find((el) => el.classList.contains(e.code));
     this.elements.textArea.focus();
     const arrowsKeys = ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'];
     if (arrowsKeys.includes(e.code)) {
-      this.props.selection.start = this.elements.textArea.selectionStart;
-      this.props.selection.end = this.elements.textArea.selectionEnd;
-
+      this.saveTextAreaSelection();
       if (e.type === 'keydown') {
         key.classList.add('keyboard__key_active');
       } else {
@@ -73,86 +114,27 @@ class Keyboard {
       if (e.type === 'keydown') {
         switch (e.code) {
           case 'Space': {
-            this.props.selection.start = this.elements.textArea.selectionStart;
-            this.props.selection.end = this.elements.textArea.selectionEnd;
-            this.props.value =
-              this.props.value.substring(0, this.props.selection.start) +
-              ' ' +
-              this.props.value.substring(this.props.selection.end, this.props.value.length);
-            this.elements.textArea.value = this.props.value;
-            this.elements.textArea.selectionStart = this.props.selection.start + 1;
-            this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+            this.insertKeyValue(' ');
             break;
           }
           case 'Enter': {
-            this.props.selection.start = this.elements.textArea.selectionStart;
-            this.props.selection.end = this.elements.textArea.selectionEnd;
-            this.props.value =
-              this.props.value.substring(0, this.props.selection.start) +
-              '\n' +
-              this.props.value.substring(this.props.selection.end, this.props.value.length);
-            this.elements.textArea.value = this.props.value;
-            this.elements.textArea.selectionStart = this.props.selection.start + 1;
-            this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
-            break;
-          }
-          case 'Backspace': {
-            this.props.selection.start = this.elements.textArea.selectionStart;
-            this.props.selection.end = this.elements.textArea.selectionEnd;
-            if (this.props.selection.start !== this.props.selection.end) {
-              this.props.value =
-                this.props.value.substring(0, this.props.selection.start) +
-                this.props.value.substring(this.props.selection.end, this.props.value.length);
-              this.elements.textArea.value = this.props.value;
-              this.elements.textArea.selectionStart = this.props.selection.start;
-              this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
-            } else {
-              this.props.value =
-                this.props.value.substring(0, this.props.selection.start - 1) +
-                this.props.value.substring(this.props.selection.end, this.props.value.length);
-              this.elements.textArea.value = this.props.value;
-              this.elements.textArea.selectionStart = this.props.selection.start - 1;
-              this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
-            }
-            break;
-          }
-          case 'Delete': {
-            this.props.selection.start = this.elements.textArea.selectionStart;
-            this.props.selection.end = this.elements.textArea.selectionEnd;
-            if (this.props.selection.start !== this.props.selection.end) {
-              this.props.value =
-                this.props.value.substring(0, this.props.selection.start) +
-                this.props.value.substring(this.props.selection.end, this.props.value.length);
-              this.elements.textArea.value = this.props.value;
-              this.elements.textArea.selectionStart = this.props.selection.start;
-              this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
-            } else {
-              this.props.value =
-                this.props.value.substring(0, this.props.selection.start) +
-                this.props.value.substring(this.props.selection.end + 1, this.props.value.length);
-              this.elements.textArea.value = this.props.value;
-              this.elements.textArea.selectionStart = this.props.selection.start;
-              this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
-            }
+            this.insertKeyValue('\n');
             break;
           }
           case 'Tab': {
-            this.props.selection.start = this.elements.textArea.selectionStart;
-            this.props.selection.end = this.elements.textArea.selectionEnd;
-            this.props.value =
-              this.props.value.substring(0, this.props.selection.start) +
-              '\t' +
-              this.props.value.substring(this.props.selection.end, this.props.value.length);
-            this.elements.textArea.value = this.props.value;
-            this.elements.textArea.selectionStart = this.props.selection.start + 1;
-            this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+            this.insertKeyValue('\t');
+            break;
+          }
+          case 'Backspace': {
+            this.deleteKeyboardValue(e.code);
+            break;
+          }
+          case 'Delete': {
+            this.deleteKeyboardValue(e.code);
             break;
           }
           case 'CapsLock': {
             this.toggleCapsLock(e.type, e.repeat);
-            break;
-          }
-          case 'MetaLeft': {
             break;
           }
           case 'ShiftLeft':
@@ -169,6 +151,9 @@ class Keyboard {
             this.changeKeyboardLanguage(e);
             break;
           }
+          case 'MetaLeft': {
+            break;
+          }
           case 'ControlRight': {
             break;
           }
@@ -176,17 +161,10 @@ class Keyboard {
             break;
           }
           default: {
-            this.props.selection.start = this.elements.textArea.selectionStart;
-            this.props.selection.end = this.elements.textArea.selectionEnd;
-            this.props.value =
-              this.props.value.substring(0, this.props.selection.start) +
-              key.lastChild.textContent +
-              this.props.value.substring(this.props.selection.end, this.props.value.length);
-            this.elements.textArea.value = this.props.value;
-            this.elements.textArea.selectionStart = this.props.selection.start + 1;
-            this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+            this.insertKeyValue(key.lastChild.textContent);
           }
         }
+        key.classList.add('keyboard__key_active');
       }
 
       if (e.type === 'keyup') {
@@ -297,7 +275,6 @@ export default Keyboard;
 // todo: resolve alt gr problem (since it emmit key press ctrL+altR at the same time)
 // todo: remove unnecessary vars from constructor (like global container)
 // todo: add clicks handlers
-// todo: add cursor in textarea handler & arrows logic
 // todo: add cross-platform key gen
 // todo: replace switch/case with obj
 // todo: fix git usage of crlf under windows
