@@ -150,6 +150,9 @@ class Keyboard {
             break;
           }
           case 'AltRight': {
+            const isAltGr = e.getModifierState('AltGraph');
+            const ctrlLeft = this.elements.keys.find((el) => el.classList.contains('ControlLeft'));
+            if (isAltGr) ctrlLeft.classList.remove('keyboard__key_active');
             break;
           }
           case 'ControlLeft': {
