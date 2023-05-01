@@ -10,10 +10,7 @@ class Keyboard {
       keysData,
       lang: localStorage.getItem('lang') || 'en',
       value: '',
-      capsLock: {
-        enabled: false,
-        keyUppedCount: 0,
-      },
+      capsLockEnabled: false,
       shiftPressed: false,
       selection: {
         start: 0,
@@ -99,8 +96,14 @@ class Keyboard {
 
   handleKey(e) {
     const key = this.elements.keys.find((el) => el.classList.contains(e.code));
-    this.elements.textArea.focus();
     const arrowsKeys = ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'];
+
+    this.elements.textArea.focus();
+
+    if (e.code === 'CapsLock') {
+      this.toggleCapsLock(e);
+    }
+
     if (arrowsKeys.includes(e.code)) {
       this.saveTextAreaSelection();
       if (e.type === 'keydown') {
@@ -110,7 +113,9 @@ class Keyboard {
       }
     } else {
       e.preventDefault();
+
       if (!key) return;
+
       if (e.type === 'keydown') {
         switch (e.code) {
           case 'Space': {
@@ -134,7 +139,6 @@ class Keyboard {
             break;
           }
           case 'CapsLock': {
-            this.toggleCapsLock(e.type, e.repeat);
             break;
           }
           case 'ShiftLeft':
@@ -169,9 +173,7 @@ class Keyboard {
 
       if (e.type === 'keyup') {
         key.classList.remove('keyboard__key_active');
-        if (e.code === 'CapsLock') {
-          this.toggleCapsLock(e.type);
-        }
+
         if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
           this.toggleShift(e.type, e.repeat);
         }
@@ -211,7 +213,7 @@ class Keyboard {
 
   changeKeysValues() {
     const isShouldBeUpperCase = () => {
-      const isCapsLockEnabled = this.props.capsLock.enabled;
+      const isCapsLockEnabled = this.props.capsLockEnabled;
       const isShiftPressed = this.props.shiftPressed;
       return (isCapsLockEnabled && !isShiftPressed) || (!isCapsLockEnabled && isShiftPressed);
     };
@@ -236,26 +238,12 @@ class Keyboard {
     });
   }
 
-  toggleCapsLock(eventType, isRepeat) {
-    // ?
-    const capsLockBtn = this.elements.keys.find((el) => el.classList.contains('CapsLock'));
-
-    if (eventType === 'keydown' && !isRepeat) {
-      this.props.capsLock.enabled = true;
-      capsLockBtn.classList.add('keyboard__key_enabled');
-      this.changeKeysValues();
-    }
-
-    if (eventType === 'keyup') {
-      if (this.props.capsLock.keyUppedCount > 0) {
-        capsLockBtn.classList.remove('keyboard__key_enabled');
-        this.props.capsLock.enabled = false;
-        this.props.capsLock.keyUppedCount = 0;
-        this.changeKeysValues();
-      } else {
-        this.props.capsLock.keyUppedCount += 1;
-      }
-    }
+  toggleCapsLock(e) {
+    const capsLockBtn = this.elements.keys.find((el) => el.classList.contains(e.code));
+    const isOn = e.getModifierState('CapsLock');
+    capsLockBtn.classList.toggle('keyboard__key_enabled', isOn);
+    this.props.capsLockEnabled = isOn;
+    this.changeKeysValues();
   }
 
   toggleShift(eventType, isRepeat) {
