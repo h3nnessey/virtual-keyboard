@@ -1,0 +1,159 @@
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+html,
+body {
+  min-height: 100vh;
+  height: 100%;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  background-color: #181818;
+}
+
+button {
+  outline: none;
+  border: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto;
+  padding-top: 5vh;
+  max-width: 860px;
+  width: 100%;
+  height: 100%;
+  gap: 3rem;
+}
+
+.keyboard-value {
+  width: 100%;
+  min-height: 350px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #1e1e1e;
+  color: #ffffff;
+  resize: none;
+  outline: none;
+  border: none;
+}
+
+.keyboard {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 auto;
+  padding: 5px;
+  max-width: 860px;
+  border-radius: 5px;
+  background-color: #181818;
+}
+
+.keyboard__key {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  margin: 2px;
+  padding: 0 5px;
+  border-radius: 7px;
+  font-size: 1.1rem;
+  font-weight: 500;
+  text-align: center;
+  color: #00adff;
+  cursor: pointer;
+  background-color: #0e121e;
+  box-shadow: 0 0 10px;
+  transition: color 0.2s;
+}
+
+.keyboard__key.keyboard__key_enabled.CapsLock {
+  color: #32ff2f;
+}
+
+.keyboard__key:not(.keyboard__key_active):hover {
+  color: #ff0062;
+}
+
+.keyboard__key:active,
+.keyboard__key:active:hover,
+.keyboard__key_active {
+  color: #fff700;
+  transform: scale(0.96);
+}
+
+.keyboard__key.Delete,
+.keyboard__key.Tab,
+.keyboard__key.Enter,
+.keyboard__key.CapsLock,
+.keyboard__key.Backspace,
+.keyboard__key.ShiftLeft,
+.keyboard__key.ShiftRight,
+.keyboard__key.Space {
+  flex-grow: 1;
+}
+
+.keyboard__key.Delete,
+.keyboard__key.Tab,
+.keyboard__key.ControlLeft,
+.keyboard__key.ControlRight {
+  width: 70px;
+}
+
+.keyboard__key.Enter,
+.keyboard__key.CapsLock {
+  width: 100px;
+}
+
+.keyboard__key.Backspace {
+  width: 110px;
+}
+
+.keyboard__key.ShiftLeft,
+.keyboard__key.ShiftRight {
+  width: 120px;
+}
+
+.keyboard__key.Space {
+  width: 43.333%;
+}
+
+.description {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  width: fit-content;
+  text-align: center;
+  border-radius: 5px;
+  background-color: #1e1e1e;
+}
+
+ul,
+li {
+  list-style: none;
+}
+
+.list-item__title {
+  color: #ffffff;
+}
+
+.text-primary {
+  font-weight: 700;
+  color: hotpink;
+}
+
+.keyboard__key.keyboard__key_enabled.CapsLock::after {
+  content: '';
+  position: absolute;
+  display: block;
+  top: 7px;
+  right: 7px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #b3ff2f;
+}
