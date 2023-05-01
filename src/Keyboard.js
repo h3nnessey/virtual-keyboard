@@ -10,9 +10,11 @@ class Keyboard {
       keysData,
       lang: localStorage.getItem('lang') || 'en',
       value: '',
-      capsLockEnabled: false,
+      capsLock: {
+        enabled: false,
+        keyUppedCount: 0,
+      },
       shiftPressed: false,
-      shiftClicked: false,
       selection: {
         start: 0,
         end: 0,
@@ -165,81 +167,88 @@ class Keyboard {
     }
   }
 
+  handleArrowPress(e, arrow) {
+    this.elements.textArea.focus();
+    this.saveTextAreaSelection();
+    if (e.type === 'keydown') {
+      arrow.classList.add('keyboard__key_active');
+    } else {
+      arrow.classList.remove('keyboard__key_active');
+    }
+  }
+
   handleKey(e) {
     const key = this.elements.keys.find((el) => el.classList.contains(e.code));
+    if (!key) return;
+
     this.elements.textArea.focus();
 
-    if (e.code === 'CapsLock') {
-      this.toggleCapsLock(e);
+    if (this.props.keysData.arrows.includes(e.code)) {
+      this.handleArrowPress(e, key);
+      return;
     }
 
-    if (this.props.keysData.arrows.includes(e.code)) {
-      this.elements.textArea.focus();
-      this.saveTextAreaSelection();
-      if (e.type === 'keydown') {
-        key.classList.add('keyboard__key_active');
-      } else {
-        key.classList.remove('keyboard__key_active');
-      }
-    } else {
-      e.preventDefault();
+    e.preventDefault();
 
-      if (!key) return;
-
-      if (e.type === 'keydown') {
-        switch (e.code) {
-          case 'Space': {
-            this.insertKeyValue(' ');
-            break;
-          }
-          case 'Enter': {
-            this.insertKeyValue('\n');
-            break;
-          }
-          case 'Tab': {
-            this.insertKeyValue('\t');
-            break;
-          }
-          case 'Backspace': {
-            this.deleteKeyboardValue(e.code);
-            break;
-          }
-          case 'Delete': {
-            this.deleteKeyboardValue(e.code);
-            break;
-          }
-          case 'ShiftLeft':
-          case 'ShiftRight': {
-            this.toggleShift(e);
-            break;
-          }
-          case 'AltLeft': {
-            this.changeKeyboardLanguage(e);
-            break;
-          }
-          case 'ControlLeft': {
-            this.changeKeyboardLanguage(e);
-            break;
-          }
-          case 'CapsLock':
-          case 'MetaLeft':
-          case 'ControlRight':
-          case 'AltRight': {
-            break;
-          }
-          default: {
-            this.insertKeyValue(key.lastChild.textContent);
-          }
+    if (e.type === 'keydown') {
+      switch (e.code) {
+        case 'Space': {
+          this.insertKeyValue(' ');
+          break;
         }
-        key.classList.add('keyboard__key_active');
-      }
-
-      if (e.type === 'keyup') {
-        key.classList.remove('keyboard__key_active');
-
-        if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+        case 'Enter': {
+          this.insertKeyValue('\n');
+          break;
+        }
+        case 'Tab': {
+          this.insertKeyValue('\t');
+          break;
+        }
+        case 'Backspace': {
+          this.deleteKeyboardValue(e.code);
+          break;
+        }
+        case 'Delete': {
+          this.deleteKeyboardValue(e.code);
+          break;
+        }
+        case 'ShiftLeft':
+        case 'ShiftRight': {
           this.toggleShift(e);
+          break;
         }
+        case 'AltLeft': {
+          this.changeKeyboardLanguage(e);
+          break;
+        }
+        case 'ControlLeft': {
+          this.changeKeyboardLanguage(e);
+          break;
+        }
+        case 'CapsLock': {
+          this.toggleCapsLock(e);
+          break;
+        }
+        case 'MetaLeft':
+        case 'ControlRight':
+        case 'AltRight': {
+          break;
+        }
+        default: {
+          this.insertKeyValue(key.lastChild.textContent);
+        }
+      }
+      key.classList.add('keyboard__key_active');
+    }
+
+    if (e.type === 'keyup') {
+      key.classList.remove('keyboard__key_active');
+
+      if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+        this.toggleShift(e);
+      }
+      if (e.code === 'CapsLock') {
+        this.toggleCapsLock(e);
       }
     }
   }
@@ -276,7 +285,7 @@ class Keyboard {
 
   changeKeysValues() {
     const isShouldBeUpperCase = () => {
-      const isCapsLockEnabled = this.props.capsLockEnabled;
+      const isCapsLockEnabled = this.props.capsLock.enabled;
       const isShiftPressed = this.props.shiftPressed;
       return (isCapsLockEnabled && !isShiftPressed) || (!isCapsLockEnabled && isShiftPressed);
     };
@@ -302,11 +311,24 @@ class Keyboard {
   }
 
   toggleCapsLock(e) {
-    const capsLockBtn = this.elements.keys.find((el) => el.classList.contains(e.code));
-    const isOn = e.getModifierState('CapsLock');
-    capsLockBtn.classList.toggle('keyboard__key_enabled', isOn);
-    this.props.capsLockEnabled = isOn;
-    this.changeKeysValues();
+    const capsLockBtn = this.elements.keys.find((el) => el.classList.contains('CapsLock'));
+
+    if (e.type === 'keydown' && !e.repeat) {
+      this.props.capsLock.enabled = true;
+      capsLockBtn.classList.add('keyboard__key_enabled');
+      this.changeKeysValues();
+    }
+
+    if (e.type === 'keyup') {
+      if (this.props.capsLock.keyUppedCount > 0) {
+        capsLockBtn.classList.remove('keyboard__key_enabled');
+        this.props.capsLock.enabled = false;
+        this.props.capsLock.keyUppedCount = 0;
+        this.changeKeysValues();
+      } else {
+        this.props.capsLock.keyUppedCount += 1;
+      }
+    }
   }
 
   toggleShift(e) {
