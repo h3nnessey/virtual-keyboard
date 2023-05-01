@@ -112,6 +112,19 @@ class Keyboard {
     this.saveTextAreaSelection();
   }
 
+  handleCapsLockClick(key) {
+    if (this.props.capsLock.enabled) {
+      this.props.capsLock.enabled = false;
+      this.props.capsLock.keyUppedCount = 0;
+      key.classList.remove('keyboard__key_enabled');
+    } else {
+      this.props.capsLock.enabled = true;
+      this.props.capsLock.keyUppedCount += 1;
+      key.classList.add('keyboard__key_enabled');
+    }
+    this.changeKeysValues();
+  }
+
   handleClick(e) {
     const key = e.target.closest('.keyboard__key');
 
@@ -150,11 +163,14 @@ class Keyboard {
           this.handleArrowClick(code);
           break;
         }
+        case 'CapsLock': {
+          this.handleCapsLockClick(key);
+          break;
+        }
         case 'AltLeft':
         case 'AltRight':
         case 'ControlLeft':
         case 'ControlRight':
-        case 'CapsLock':
         case 'MetaLeft': {
           break;
         }
