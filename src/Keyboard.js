@@ -35,12 +35,39 @@ class Keyboard {
     document.body.appendChild(this.elements.container);
 
     ['keydown', 'keyup'].forEach((eventType) => {
-      window.addEventListener(eventType, (e) => this.handleKey(e, eventType));
+      window.addEventListener(eventType, (e) => this.handleKeyPress(e));
     });
 
     window.addEventListener('click', (e) => {
       this.handleClick(e);
     });
+
+    this.addShiftClickListeners();
+  }
+
+  addShiftClickListeners() {
+    this.elements.keys
+      .filter((el) => el.classList.contains('ShiftLeft') || el.classList.contains('ShiftRight'))
+      .forEach((shift) => {
+        shift.addEventListener('mousedown', () => {
+          this.props.shiftPressed = true;
+          shift.classList.add('keyboard__key_active');
+          this.changeKeysValues();
+
+          shift.addEventListener('mouseleave', () => {
+            this.props.shiftPressed = false;
+            shift.classList.remove('keyboard__key_active');
+            shift.blur();
+            this.changeKeysValues();
+          });
+        });
+
+        shift.addEventListener('mouseup', () => {
+          this.props.shiftPressed = false;
+          shift.classList.remove('keyboard__key_active');
+          this.changeKeysValues();
+        });
+      });
   }
 
   initKeyboardKeys(keysObject) {
@@ -105,9 +132,11 @@ class Keyboard {
       if (!prev) return;
       this.elements.textArea.selectionStart -= 1;
     }
+
     if (arrow === 'ArrowRight') {
       this.elements.textArea.selectionStart += 1;
     }
+
     this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
     this.saveTextAreaSelection();
   }
@@ -122,6 +151,7 @@ class Keyboard {
       this.props.capsLock.keyUppedCount += 1;
       key.classList.add('keyboard__key_enabled');
     }
+
     this.changeKeysValues();
   }
 
@@ -153,11 +183,6 @@ class Keyboard {
           this.deleteKeyboardValue(code);
           break;
         }
-        case 'ShiftLeft':
-        case 'ShiftRight': {
-          this.toggleShift(e);
-          break;
-        }
         case 'ArrowLeft':
         case 'ArrowRight': {
           this.handleArrowClick(code);
@@ -171,7 +196,9 @@ class Keyboard {
         case 'AltRight':
         case 'ControlLeft':
         case 'ControlRight':
-        case 'MetaLeft': {
+        case 'MetaLeft':
+        case 'ShiftLeft':
+        case 'ShiftRight': {
           break;
         }
         default: {
@@ -191,8 +218,9 @@ class Keyboard {
     }
   }
 
-  handleKey(e) {
+  handleKeyPress(e) {
     const key = this.elements.keys.find((el) => el.classList.contains(e.code));
+
     if (!key) return;
 
     this.elements.textArea.focus();
@@ -228,7 +256,7 @@ class Keyboard {
         }
         case 'ShiftLeft':
         case 'ShiftRight': {
-          this.toggleShift(e);
+          this.toggleShiftPress(e);
           break;
         }
         case 'AltLeft': {
@@ -240,7 +268,7 @@ class Keyboard {
           break;
         }
         case 'CapsLock': {
-          this.toggleCapsLock(e);
+          this.toggleCapsLockPress(e);
           break;
         }
         case 'MetaLeft':
@@ -259,10 +287,10 @@ class Keyboard {
       key.classList.remove('keyboard__key_active');
 
       if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-        this.toggleShift(e);
+        this.toggleShiftPress(e);
       }
       if (e.code === 'CapsLock') {
-        this.toggleCapsLock(e);
+        this.toggleCapsLockPress(e);
       }
     }
   }
@@ -324,7 +352,7 @@ class Keyboard {
     });
   }
 
-  toggleCapsLock(e) {
+  toggleCapsLockPress(e) {
     const capsLockBtn = this.elements.keys.find((el) => el.classList.contains('CapsLock'));
 
     if (e.type === 'keydown' && !e.repeat) {
@@ -345,7 +373,7 @@ class Keyboard {
     }
   }
 
-  toggleShift(e) {
+  toggleShiftPress(e) {
     if (e.type === 'keydown') {
       this.props.shiftPressed = true;
     }
