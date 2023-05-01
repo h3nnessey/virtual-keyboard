@@ -12,6 +12,7 @@ class Keyboard {
       value: '',
       capsLockEnabled: false,
       shiftPressed: false,
+      shiftClicked: false,
       selection: {
         start: 0,
         end: 0,
@@ -36,6 +37,10 @@ class Keyboard {
     ['keydown', 'keyup'].forEach((eventType) => {
       window.addEventListener(eventType, (e) => this.handleKey(e, eventType));
     });
+
+    window.addEventListener('click', (e) => {
+      this.handleClick(e);
+    });
   }
 
   initKeyboardKeys(keysObject) {
@@ -44,6 +49,7 @@ class Keyboard {
       const span = document.createElement('span');
       const keyValue = value[this.props.lang].value;
       button.classList.add('keyboard__key', key);
+      button.dataset.key = key;
       span.textContent = keyValue;
       button.appendChild(span);
       this.elements.keys.push(button);
@@ -93,17 +99,82 @@ class Keyboard {
     }
   }
 
+  handleArrowClick(arrow) {
+    if (arrow === 'ArrowLeft') {
+      const prev = this.props.value[this.props.selection.start - 1] || null;
+      if (!prev) return;
+      this.elements.textArea.selectionStart -= 1;
+    }
+    if (arrow === 'ArrowRight') {
+      this.elements.textArea.selectionStart += 1;
+    }
+    this.elements.textArea.selectionEnd = this.elements.textArea.selectionStart;
+    this.saveTextAreaSelection();
+  }
+
+  handleClick(e) {
+    const key = e.target.closest('.keyboard__key');
+
+    if (key) {
+      const code = key.dataset.key;
+      this.elements.textArea.focus();
+
+      switch (code) {
+        case 'Space': {
+          this.insertKeyValue(' ');
+          break;
+        }
+        case 'Enter': {
+          this.insertKeyValue('\n');
+          break;
+        }
+        case 'Tab': {
+          this.insertKeyValue('\t');
+          break;
+        }
+        case 'Backspace': {
+          this.deleteKeyboardValue(code);
+          break;
+        }
+        case 'Delete': {
+          this.deleteKeyboardValue(code);
+          break;
+        }
+        case 'ShiftLeft':
+        case 'ShiftRight': {
+          this.toggleShift(e);
+          break;
+        }
+        case 'ArrowLeft':
+        case 'ArrowRight': {
+          this.handleArrowClick(code);
+          break;
+        }
+        case 'AltLeft':
+        case 'AltRight':
+        case 'ControlLeft':
+        case 'ControlRight':
+        case 'CapsLock':
+        case 'MetaLeft': {
+          break;
+        }
+        default: {
+          this.insertKeyValue(key.lastChild.textContent);
+        }
+      }
+    }
+  }
+
   handleKey(e) {
     const key = this.elements.keys.find((el) => el.classList.contains(e.code));
-    const arrowsKeys = ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'];
-
     this.elements.textArea.focus();
-    e.preventDefault();
+
     if (e.code === 'CapsLock') {
       this.toggleCapsLock(e);
     }
 
-    if (arrowsKeys.includes(e.code)) {
+    if (this.props.keysData.arrows.includes(e.code)) {
+      this.elements.textArea.focus();
       this.saveTextAreaSelection();
       if (e.type === 'keydown') {
         key.classList.add('keyboard__key_active');
@@ -137,9 +208,6 @@ class Keyboard {
             this.deleteKeyboardValue(e.code);
             break;
           }
-          case 'CapsLock': {
-            break;
-          }
           case 'ShiftLeft':
           case 'ShiftRight': {
             this.toggleShift(e);
@@ -149,23 +217,16 @@ class Keyboard {
             this.changeKeyboardLanguage(e);
             break;
           }
-          case 'AltRight': {
-            const isAltGr = e.getModifierState('AltGraph');
-            const ctrlLeft = this.elements.keys.find((el) => el.classList.contains('ControlLeft'));
-            if (isAltGr) ctrlLeft.classList.remove('keyboard__key_active');
-            break;
-          }
           case 'ControlLeft': {
             this.changeKeyboardLanguage(e);
             break;
           }
-          case 'MetaLeft': {
+          case 'CapsLock':
+          case 'MetaLeft':
+          case 'ControlRight':
+          case 'AltRight': {
             break;
           }
-          case 'ControlRight': {
-            break;
-          }
-
           default: {
             this.insertKeyValue(key.lastChild.textContent);
           }
@@ -249,7 +310,7 @@ class Keyboard {
   }
 
   toggleShift(e) {
-    if (e.type === 'keydown' && !e.repeat) {
+    if (e.type === 'keydown') {
       this.props.shiftPressed = true;
     }
 
@@ -261,14 +322,9 @@ class Keyboard {
 
       this.props.shiftPressed = false;
     }
+
     this.changeKeysValues();
   }
 }
 
 export default Keyboard;
-
-// todo: remove unnecessary vars from constructor (like global container)
-// todo: add clicks handlers
-// todo: add cross-platform key gen
-// todo: replace switch/case with obj
-// window blur -> remove active class from alt/ctrl keys since key+tab combo will not trigger keyup

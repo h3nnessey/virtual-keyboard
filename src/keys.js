@@ -562,11 +562,11 @@ const keysData = {
     },
     MetaLeft: {
       en: {
-        value: 'Win',
+        value: '⊞',
         shift: null,
       },
       ru: {
-        value: 'Win',
+        value: '⊞',
         shift: null,
       },
     },
@@ -655,7 +655,12 @@ const keysData = {
     'AltRight',
     'MetaLeft',
     'Space',
+    'ArrowLeft',
+    'ArrowRight',
+    'ArrowDown',
+    'ArrowUp',
   ],
+  arrows: ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'],
 };
 
 export default keysData;

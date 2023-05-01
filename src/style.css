@@ -65,6 +65,11 @@ button {
     rgba(10, 37, 64, 0.35) 0 -2px 6px 0 inset;
 }
 
+.keyboard__key:active {
+  background-color: #fff5be;
+  transform: scale(0.97);
+}
+
 .keyboard__key_active {
   background-color: #fff5be;
   transform: scale(0.97);
