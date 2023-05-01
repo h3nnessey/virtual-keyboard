@@ -57,8 +57,7 @@ class Keyboard {
 
   setTextAreaValueAndSelection(selectionStart) {
     this.elements.textArea.value = this.props.value;
-    this.elements.textArea.selectionStart = selectionStart;
-    this.elements.textArea.selectionEnd = selectionStart;
+    this.elements.textArea.setSelectionRange(selectionStart, selectionStart);
   }
 
   insertKeyValue(keyValue) {
@@ -99,7 +98,7 @@ class Keyboard {
     const arrowsKeys = ['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp'];
 
     this.elements.textArea.focus();
-
+    e.preventDefault();
     if (e.code === 'CapsLock') {
       this.toggleCapsLock(e);
     }
@@ -143,12 +142,14 @@ class Keyboard {
           }
           case 'ShiftLeft':
           case 'ShiftRight': {
-            if (this.props.shiftPressed) return;
-            this.toggleShift(e.type, e.repeat);
+            this.toggleShift(e);
             break;
           }
           case 'AltLeft': {
             this.changeKeyboardLanguage(e);
+            break;
+          }
+          case 'AltRight': {
             break;
           }
           case 'ControlLeft': {
@@ -161,9 +162,7 @@ class Keyboard {
           case 'ControlRight': {
             break;
           }
-          case 'AltRight': {
-            break;
-          }
+
           default: {
             this.insertKeyValue(key.lastChild.textContent);
           }
@@ -175,7 +174,7 @@ class Keyboard {
         key.classList.remove('keyboard__key_active');
 
         if (e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
-          this.toggleShift(e.type, e.repeat);
+          this.toggleShift(e);
         }
       }
     }
@@ -246,12 +245,17 @@ class Keyboard {
     this.changeKeysValues();
   }
 
-  toggleShift(eventType, isRepeat) {
-    if (eventType === 'keydown' && !isRepeat) {
+  toggleShift(e) {
+    if (e.type === 'keydown' && !e.repeat) {
       this.props.shiftPressed = true;
     }
 
-    if (eventType === 'keyup') {
+    if (e.type === 'keyup') {
+      const shiftKeys = this.elements.keys.filter(
+        (el) => el.classList.contains('ShiftLeft') || el.classList.contains('ShiftRight'),
+      );
+      shiftKeys.forEach((key) => key.classList.remove('keyboard__key_active'));
+
       this.props.shiftPressed = false;
     }
     this.changeKeysValues();
@@ -260,9 +264,8 @@ class Keyboard {
 
 export default Keyboard;
 
-// todo: resolve alt gr problem (since it emmit key press ctrL+altR at the same time)
 // todo: remove unnecessary vars from constructor (like global container)
 // todo: add clicks handlers
 // todo: add cross-platform key gen
 // todo: replace switch/case with obj
-// todo: fix git usage of crlf under windows
+// window blur -> remove active class from alt/ctrl keys since key+tab combo will not trigger keyup
